@@ -226,6 +226,100 @@ class PostController extends Controller
         return $this->redirect(['index']);
     }
 
+    public function actionUpdateComment($id)
+    {
+        $model = PostComment::find()->where(['comment_id' => $id])->one();
+
+        if($model->load(Yii::$app->request->post()) && $model->save())
+        {
+            return $this->redirect(['comments', 'id' => $model->post_id]);
+        }
+        else
+        {
+            if($model->author_id == \Yii::$app->user->identity->id)
+            {
+                return $this->render('update_comment',[
+                    'model' => $model
+                ]);
+            }
+
+            return $this->redirect(['../site/error','405','You are not allowed!']);
+        }
+
+    }
+
+    public function actionCreateComment($id)
+    {
+        $model = new PostComment();
+
+        if($model->load(\Yii::$app->request->post()))
+        {
+            date_default_timezone_set('Europe/Berlin');
+
+            $model->author_id = \Yii::$app->user->identity->id;
+            $model->post_id = $id;
+            $model->date_create = date('d/m/Y');
+
+            if($model->save())
+            {
+                return $this->redirect(['comments', 'id' => $id]);
+            }
+
+            throw new \yii\db\Exception("Some problem with DB connection occurred!");
+
+        }
+        else
+        {
+            return $this->render('create-comment',[
+                'model' => $model
+            ]);
+        }
+    }
+
+    public function actionDeleteComment($id)
+    {
+        $post_comment = PostComment::find()->where(['comment_id' => $id])->one();
+        $post_id = $post_comment->post_id;
+
+        if(\Yii::$app->user->identity->id == $post_comment->author_id || $this->isAdmin())
+        {
+            \Yii::$app->db->createCommand("SET foreign_key_checks = 0;")->execute();
+
+            $post_comment->delete();
+
+            \Yii::$app->db->createCommand("DELETE FROM likes
+                                                WHERE comment_id=$id")->execute();
+
+            \Yii::$app->db->createCommand("DELETE FROM dislikes
+                                                WHERE comment_id=$id")->execute();
+
+            \Yii::$app->db->createCommand("SET foreign_key_checks = 1;")->execute();
+
+            return $this->redirect(['comments', 'id' => $post_id]);
+        }
+
+        return $this->redirect(['../site/error', '405', 'You are not allowed!']);
+
+    }
+
+    public function actionComments($id)
+    {
+        $comments = \Yii::$app->db->createCommand("SELECT *
+                                                        FROM post_comments
+                                                        WHERE post_id=$id
+                                                        ORDER BY comment_id
+                                                        DESC ")->queryAll();
+
+        if(\Yii::$app->user->isGuest)
+        {
+            return $this->redirect(['../site/error', '405', 'You have to be loged in, to see this content!']);
+        }
+
+        return $this->render('comments',[
+            'comments' => $comments,
+        ]);
+    }
+
         /**
      * Finds the Post model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.

@@ -4,11 +4,14 @@ namespace app\controllers;
 
 use app\models\BlogUser;
 use app\models\PostComment;
+use app\models\Tag;
 use Yii;
 use app\models\Post;
 use app\models\PostSearch;
 use yii\data\Pagination;
 use yii\db\Query;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -35,7 +38,7 @@ class PostController extends Controller
             ],
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['create', 'update', 'delete', 'index', 'view', 'comments', 'feedback', 'search-post'],
+                'only' => ['create', 'update', 'delete', 'index', 'view', 'comments', 'feedback', 'search-post', 'integrate-tags'],
                 'rules' => [
                     [
                         'actions' => ['update','delete'],
@@ -62,7 +65,7 @@ class PostController extends Controller
                         'roles' => ['user'],
                     ],
                     [
-                        'actions' => ['index', 'view', 'feedback', 'search-post'],
+                        'actions' => ['index', 'view', 'feedback', 'search-post', 'integrate-tags'],
                         'allow' => true,
                         'roles' => ['@']
                     ]
@@ -156,6 +159,7 @@ class PostController extends Controller
     {
         $model = new Post();
         $id = \Yii::$app->user->identity->id;
+        $ddItems = ArrayHelper::map(Tag::find()->all(),'tag_id', 'tag_name');
 
         if ($model->load(Yii::$app->request->post())) {
 
@@ -164,8 +168,11 @@ class PostController extends Controller
             $model->user_id = $id;
             $model->date_create = date('m/d/Y');
 
+            $tag_id = $this->getTagId();
+
             if($model->save())
             {
+                \Yii::$app->db->createCommand("INSERT INTO tagpostrelation(tag_id, post_id) VALUES ($tag_id, $model->post_id)")->execute();
                 return $this->redirect(['view', 'id' => $model->post_id]);
             }
 
@@ -174,10 +181,19 @@ class PostController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
+                'ddItems' => $ddItems
             ]);
         }
     }
 
+    public function getTagId()
+    {
+        $tagName = \Yii::$app->request->post('chosen-tag');
+        $tag = Tag::find()->where(['tag_name' => $tagName])->one();
+        $tag_id = $tag->tag_id;
+
+        return $tag_id;
+    }
     /**
      * Updates an existing Post model.
      * If update is successful, the browser will be redirected to the 'view' page.
@@ -197,7 +213,173 @@ class PostController extends Controller
         }
     }
 
+    //Search post by title
+    public function actionSearchPost($title)
+    {
+        $post = (new Query())->select('*')
+                                ->from('posts')
+                                ->where(['title' => $title])
+                                ->one();
 
+        if($post)
+        {
+            return json_encode($post);
+        }
+
+        return true;
+    }
+
+    public function actionUpdateComment($id)
+    {
+        $model = PostComment::find()->where(['comment_id' => $id])->one();
+
+        if($model->load(Yii::$app->request->post()) && $model->save())
+        {
+            return $this->redirect(['comments', 'id' => $model->post_id]);
+        }
+        else
+        {
+            if($model->author_id == \Yii::$app->user->identity->id)
+            {
+                return $this->render('update_comment',[
+                    'model' => $model
+                ]);
+            }
+
+            return $this->redirect(['../site/error','405','You are not allowed!']);
+        }
+
+    }
+
+    public function actionComments($id)
+    {
+        $comments = \Yii::$app->db->createCommand("SELECT *
+                                                        FROM post_comments
+                                                        WHERE post_id=$id
+                                                        ORDER BY comment_id
+                                                        DESC ")->queryAll();
+
+        if(\Yii::$app->user->isGuest)
+        {
+            return $this->redirect(['../site/error', '405', 'You have to be loged in, to see this content!']);
+        }
+
+        return $this->render('comments',[
+            'comments' => $comments,
+        ]);
+    }
+
+    public function actionFeedback($target_id, $post_id = null, $status, $flag)
+    {
+        if(\Yii::$app->request->isAjax)
+        {
+            $user_id = \Yii::$app->user->identity->id;
+
+            if($flag == 0) {
+
+                $likes = \Yii::$app->db->createCommand("SELECT COUNT(*)
+                                                         FROM likes
+                                                         WHERE comment_id=$target_id")->queryScalar();
+
+                $dislikes = \Yii::$app->db->createCommand("SELECT COUNT(*)
+                                                         FROM dislikes
+                                                         WHERE comment_id=$target_id")->queryScalar();
+
+                if (!$this->queryComments($user_id, $target_id, 'likes')
+                    &&
+                    !$this->queryComments($user_id, $target_id, 'dislikes'))
+                {
+                    if ($status == 'like')
+                    {
+                        \Yii::$app->db->createCommand("INSERT INTO likes(user_id, comment_id, post_id)
+                                                            VALUES ($user_id, $target_id, 0)")->execute();
+
+                        $likes++;
+
+                    }
+                    else if ($status == 'dislike')
+                    {
+                        \Yii::$app->db->createCommand("INSERT INTO dislikes(user_id, comment_id, post_id)
+                                                            VALUES ($user_id, $target_id, 0)")->execute();
+
+                        $dislikes++;
+                    }
+
+                }
+
+                if($status == 'like')
+                {
+                    return $likes;
+                }
+                else if($status == 'dislike')
+                {
+                    return $dislikes;
+                }
+
+            }
+            else if($flag == 1)
+            {
+                $likes = \Yii::$app->db->createCommand("SELECT COUNT(*)
+                                                         FROM likes
+                                                         WHERE post_id=$target_id")->queryScalar();
+
+                $dislikes = \Yii::$app->db->createCommand("SELECT COUNT(*)
+                                                         FROM dislikes
+                                                         WHERE post_id=$target_id")->queryScalar();
+
+                if(!$this->queryPosts($user_id, $target_id, 'likes')
+                   &&
+                   !$this->queryPosts($user_id, $target_id, 'dislikes'))
+                {
+                    if ($status == 'like')
+                    {
+                        \Yii::$app->db->createCommand("INSERT INTO likes(user_id, comment_id, post_id)
+                                                            VALUES ($user_id, 0, $target_id)")->execute();
+
+                        $likes++;
+
+                    }
+                    else if ($status == 'dislike')
+                    {
+                        \Yii::$app->db->createCommand("INSERT INTO dislikes(user_id, comment_id, post_id)
+                                                            VALUES ($user_id, 0, $target_id)")->execute();
+
+                        $dislikes++;
+                    }
+                }
+
+                if($status == 'like')
+                {
+                    return $likes;
+                }
+                else if($status == 'dislike')
+                {
+                    return $dislikes;
+                }
+            }
+
+        }
+    }
+
+    private function queryComments($user_id, $comment_id, $table)
+    {
+        $checkQuery = (new Query())->select('*')
+            ->from($table)
+            ->where(['user_id' => $user_id, 'comment_id' => $comment_id])
+            ->one();
+
+        return $checkQuery;
+    }
+
+    private function queryPosts($user_id, $post_id, $table)
+    {
+        $checkQuery = (new Query())->select('*')
+            ->from($table)
+            ->where(['user_id' => $user_id, 'post_id' => $post_id])
+            ->one();
+
+        return $checkQuery;
+    }
 
     /**
      * Deletes an existing Post model.
@@ -224,28 +406,6 @@ class PostController extends Controller
         \Yii::$app->db->createCommand("SET foreign_key_checks = 1;")->execute();
 
         return $this->redirect(['index']);
-    }
-
-    public function actionUpdateComment($id)
-    {
-        $model = PostComment::find()->where(['comment_id' => $id])->one();
-
-        if($model->load(Yii::$app->request->post()) && $model->save())
-        {
-            return $this->redirect(['comments', 'id' => $model->post_id]);
-        }
-        else
-        {
-            if($model->author_id == \Yii::$app->user->identity->id)
-            {
-                return $this->render('update_comment',[
-                    'model' => $model
-                ]);
-            }
-
-            return $this->redirect(['../site/error','405','You are not allowed!']);
-        }
-
     }
 
     public function actionCreateComment($id)
@@ -281,8 +441,7 @@ class PostController extends Controller
         $post_comment = PostComment::find()->where(['comment_id' => $id])->one();
         $post_id = $post_comment->post_id;
 
-        if(\Yii::$app->user->identity->id == $post_comment->author_id || $this->isAdmin())
-        {
+        if (\Yii::$app->user->identity->id == $post_comment->author_id || $this->isAdmin()) {
             \Yii::$app->db->createCommand("SET foreign_key_checks = 0;")->execute();
 
             $post_comment->delete();
@@ -302,25 +461,7 @@ class PostController extends Controller
 
     }
 
-    public function actionComments($id)
-    {
-        $comments = \Yii::$app->db->createCommand("SELECT *
-                                                        FROM post_comments
-                                                        WHERE post_id=$id
-                                                        ORDER BY comment_id
-                                                        DESC ")->queryAll();
-
-        if(\Yii::$app->user->isGuest)
-        {
-            return $this->redirect(['../site/error', '405', 'You have to be loged in, to see this content!']);
-        }
-
-        return $this->render('comments',[
-            'comments' => $comments,
-        ]);
-    }
-
-        /**
+    /**
      * Finds the Post model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id

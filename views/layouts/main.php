@@ -87,10 +87,11 @@ AppAsset::register($this);
                <p><strong><em>&copy; Let`s Blog<?= date('Y') ?></em></strong></p>
            </div>
             <div class="col-md-6 col-md-offset-3 text-right">
+                <span><strong><em>Find us at</em></strong> &nbsp&nbsp&nbsp</span>
                 <?=
-                    Html::a(
-                            Html::img('../images/insta.jpg'), 'https://www.instagram.com/'
-                            )
+                Html::a(
+                    Html::img('../images/insta.jpg'), 'https://www.instagram.com/'
+                )
                 ?>
                 <?=
                 Html::a(

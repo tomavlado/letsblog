@@ -35,20 +35,16 @@ use yii\widgets\ActiveForm;
                             <?= $form->field($model, 'content')->textarea(['rows' => '10','style' => 'text-align: justify']) ?>
                         </div>
                         <div class="col-md-4" style="padding-left:8.5%">
-                            <?= Html::dropDownList('tag-list',
-                                                    '',
-                                                    ['1' => 'PHP', '2' => 'JavaScript', '3' => 'CSharp', '4' => 'Java', '5' => 'AJAX' , '6' => 'jQuery'],
-                                                    [
-                                                            'prompt' => '',
-                                                            'class' => 'form-control dd-list',
-                                                    ]) ?>
+                            <?= Html::activeDropDownList($model, 'post_id', $ddItems, ['class' => 'form-control dd-list', 'prompt' => '']) ?>
+                            <?= Html::hiddenInput('chosen-tag') ?>
                         </div>
                         <div class="col-md-7" style="margin-left: 2.5%">
                             <div class="tag-container"></div>
                         </div>
                     </div>
                     <div class="panel-footer">
-                        <?= Html::submitButton('Post', ['class' => 'btn btn-primary form-control create-post']) ?>
+                        <?= Html::submitButton('Post', ['class' => 'btn btn-primary form-control create-post', 'style' => 'width:49.5%']) ?>
+                        <?= Html::a('Back', 'index', ['class' => 'btn btn-warning form-control', 'style' => 'width:49.5%']) ?>
                    </div>
                 </div>
             </div>
@@ -56,11 +52,5 @@ use yii\widgets\ActiveForm;
     </div>
 
     <?php ActiveForm::end(); ?>
-
-    <?php
-        $this->registerJs("
-                                           
-        ");
-    ?>
 
 </div>

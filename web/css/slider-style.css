@@ -65,3 +65,44 @@
     color: blue;
     border: 1px solid grey;
 }
+
+.content-post{
+    background-color: white;
+    text-align: justify;
+    padding: 2%;
+    line-height: 180%;
+    text-indent: 10px;
+}
+
+.title-post{
+    background-color: lightcoral;
+    color: black;
+    font-weight: bold;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+.foot-post{
+    background: lightcoral;
+    padding-bottom: 0.5%;
+    padding-top: 0.5%;
+    padding-right: 1%;
+}
+
+.foot-post div.text-left{
+    width: 50%;
+    float: left;
+    padding-left: 1%;
+}
+
+.tag-holder{
+    background-color: lightcoral;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    color: black;
+    font-weight: bold;
+    padding: 2%;
+    margin-left: 5%;
+    display: inline-block;
+}

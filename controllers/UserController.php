@@ -167,7 +167,6 @@ class UserController extends Controller
     {
         $id = \Yii::$app->user->identity->id;
         $model = $this->findModel($id);
-        //$model->setScenario('update-image');
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
 
@@ -201,18 +200,9 @@ class UserController extends Controller
     public function actionDelete($id)
     {
         \Yii::$app->db->createCommand("SET foreign_key_checks = 0;")->execute();
-/*
-        $userPosts = (new Query())->select('*')
-            ->from('posts')
-            ->where(['user_id' => $id])
-            ->all();
 
-        foreach ($userPosts as $post)
-        {
-            $post_id = $post['post_id'];
-            \Yii::$app->db->createCommand("DELETE FROM post_comments WHERE author_id=$id")->execute();
-        }
-*/
+        \Yii::$app->db->createCommand("DELETE FROM auth_assignment WHERE user_id=$id")->execute();
+
         \Yii::$app->db->createCommand("DELETE FROM post_comments WHERE author_id=$id")->execute();
 
         Post::deleteAll('user_id = ' . $id);

@@ -9,6 +9,7 @@ use function PHPSTORM_META\elementType;
 use Yii;
 use yii\base\ErrorException;
 use yii\filters\AccessControl;
+use yii\helpers\Html;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
@@ -68,7 +69,12 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $model = new \app\models\Post();
+        $lastPosts = $model::find()->orderBy(["post_id" => SORT_DESC])->limit(3)->all();
+
+        return $this->render('index', [
+            'lastPosts' => $lastPosts
+        ]);
     }
 
     /**
@@ -107,10 +113,10 @@ class SiteController extends Controller
 
             if($model->validate())
             {
-                $user->username = $model->username;
-                $user->password = md5($model->password);
-                $user->repeat_password = md5($model->repeat_password);
-                $user->email = $model->email;
+                $user->username = Html::encode($model->username);
+                $user->password = Html::encode(md5($model->password));
+                $user->repeat_password = Html::encode(md5($model->repeat_password));
+                $user->email = Html::encode($model->email);
 
                 if($user->save())
                 {

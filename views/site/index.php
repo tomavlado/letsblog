@@ -1,6 +1,8 @@
 <?php
 
 use yii\helpers\Html;
+use app\models\Post;
+
 /* @var $this yii\web\View */
 
 $this->title = 'My Yii Application';
@@ -106,9 +108,6 @@ $this->title = 'My Yii Application';
                 <div class="row">
 
                     <?php
-
-                    $model = new \app\models\Post();
-                    $lastPosts = $model::find()->orderBy(["post_id" => SORT_DESC])->limit(3)->all();
 
                     foreach ($lastPosts as $post)
                     {

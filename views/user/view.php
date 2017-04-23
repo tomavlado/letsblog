@@ -178,7 +178,14 @@ $this->title = "Welcome to your profile, " . ucfirst(\Yii::$app->user->identity-
                             <?= Html::a("Update", 'update', ['class' => 'btn btn-success']); ?>
                             <?=
                                 Html::a("Delete", ['delete', 'id' => \Yii::$app->user->identity->id],
-                                                  ['data-method' => 'POST', 'class' => 'btn btn-danger']);
+                                                  [
+                                                          'data-method' => 'POST',
+                                                          'class' => 'btn btn-danger',
+                                                          'data' =>
+                                                          [
+                                                                'confirm' => 'Are you sure? Your profile will be deleted permanently!'
+                                                          ]
+                                                  ]);
                             ?>
                         </div>
                 </div>

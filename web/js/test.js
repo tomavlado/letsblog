@@ -48,7 +48,7 @@ $(function () {
             searchField.attr('placeholder', 'search by title..');
             $('input[name=search-type-check]').val('1');
         }else{
-            searchField.attr('placeholder', 'search by tag..');
+            searchField.attr('placeholder', 'PHP, JavaScript, CSharp, C++, AJAX, PJAX, Java, Framework, MySQL, C');
             $('input[name=search-type-check]').val('2');
         }
     });

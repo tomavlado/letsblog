@@ -25,39 +25,6 @@ use yii\widgets\Pjax;
                 <div class="col-md-8 search-input">
                     <?= Html::textInput('search-info', '',['class' => 'form-control']) ?>
                 </div>
-                <?php
-                    $this->registerJs("
-                        $('.search-form').on('click', function(event){
-                            event.preventDefault();
-                            var flag = $('input[name=search-type-check]').val();
-                            var input = $('input[name=search-info]').val();
-                            console.log(flag);                           
-                            if( flag == '' ){
-                                alert('Please, choose your search type!');
-                                return false;
-                            }else if( flag == '1' ){
-                                $.ajax({
-                                    type : 'GET',
-                                    url : '" . \yii\helpers\Url::to(['search-post']) . "?title='+input,
-                                    dataType : 'json',
-                                    success : function( data ){
-                                        if(data == 1){
-                                            alert('No such title!');
-                                        }else{
-                                            $('#posts').css('display', 'none');
-                                            $('.none').fadeIn(1500);
-                                            $('.title-post h3').html( data.title );
-                                            $('.content-post').html( data.content );
-                                            $('.foot-post div.text-left a').attr('href', 'view?id=' + data.post_id);                                    
-                                        }
-                                    }
-                                });
-                            }else if( flag == '2' ){
-                                
-                            }
-                        });
-                    ");
-                ?>
             </div>
         </div>
         <div class="row">
@@ -78,6 +45,10 @@ use yii\widgets\Pjax;
                     </div>
 
                 </div>
+            </div>
+
+            <div class="list-view">
+                    <?= Html::a('Back', 'index', ['class' => 'btn btn-warning']) ?>
             </div>
 
             <?php Pjax::begin(['id' => 'posts']) ?>

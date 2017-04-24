@@ -38,7 +38,7 @@ class PostController extends Controller
             ],
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['create', 'update', 'delete', 'index', 'view', 'comments', 'feedback', 'search-post', 'integrate-tags'],
+                'only' => ['create', 'update', 'delete', 'index', 'view', 'comments', 'feedback', 'search-post', 'integrate-tags', 'search-tag'],
                 'rules' => [
                     [
                         'actions' => ['update','delete'],
@@ -65,7 +65,7 @@ class PostController extends Controller
                         'roles' => ['user'],
                     ],
                     [
-                        'actions' => ['index', 'view', 'feedback', 'search-post', 'integrate-tags'],
+                        'actions' => ['index', 'view', 'feedback', 'search-post', 'integrate-tags', 'search-tag'],
                         'allow' => true,
                         'roles' => ['@']
                     ]
@@ -102,13 +102,8 @@ class PostController extends Controller
 
         $posts = $postModel::find()->orderBy(['post_id' => SORT_DESC])->all();
 
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        $dataProvider->pagination->pageSize=12;
-
         return $this->render('index', [
             'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
             'postModel' => $postModel,
             'userModel' => $userModel,
             'posts' => $posts,
@@ -141,13 +136,42 @@ class PostController extends Controller
                                         ->where(['post_id' => $postModel->post_id])
                                         ->all();
 
+        $tags = $this->tagPostRelations($id);
+
         return $this->render('view', [
             'model' => $this->findModel($id),
             'author' => $currUser,
             'postCount' => $postCommentsCount,
             'likesCount' => $likesCount,
-            'dislikesCount' => $dislikesCount
+            'dislikesCount' => $dislikesCount,
+            'tags' => $tags
         ]);
+    }
+
+    private function tagPostRelations($post_id)
+    {
+        $tagPostRelation = (new Query())->select('tag_id')
+            ->from('tagpostrelation')
+            ->where(['post_id' => $post_id])
+            ->all();
+
+        $tags = [];
+
+        foreach ($tagPostRelation as $tag) {
+            $tag_name = (new Query())->select('tag_name')
+                                    ->from('tags')
+                                    ->where(['tag_id' => $tag['tag_id']])
+                                    ->one();
+            $tags[] = $tag_name;
+        }
+
+        $outputString = [];
+
+        foreach ($tags as $tag) {
+            $outputString[] = $tag['tag_name'];
+        }
+
+        return implode(', ', $outputString);
     }
 
     /**
@@ -168,11 +192,16 @@ class PostController extends Controller
             $model->user_id = $id;
             $model->date_create = date('m/d/Y');
 
-            $tag_id = $this->getTagId();
-
             if($model->save())
             {
-                \Yii::$app->db->createCommand("INSERT INTO tagpostrelation(tag_id, post_id) VALUES ($tag_id, $model->post_id)")->execute();
+                $tags = $this->getTags();
+
+                foreach ($tags as $tag)
+                {
+                    $tag_id = $this->getTagId($tag);
+                    \Yii::$app->db->createCommand("INSERT INTO tagpostrelation(tag_id, post_id) VALUES ($tag_id, $model->post_id)")->execute();
+                }
+
                 return $this->redirect(['view', 'id' => $model->post_id]);
             }
 
@@ -186,12 +215,18 @@ class PostController extends Controller
         }
     }
 
-    public function getTagId()
+    private function getTags()
     {
-        $tagName = \Yii::$app->request->post('chosen-tag');
-        $tag = Tag::find()->where(['tag_name' => $tagName])->one();
-        $tag_id = $tag->tag_id;
+        $tags = \Yii::$app->request->post('chosen-tag');
+        $tags = trim($tags);
+        $tagArray = explode(' ', $tags);
+        return $tagArray;
+    }
 
+    private function getTagId($param)
+    {
+        $tag = Tag::find()->where(['tag_name' => $param])->one();
+        $tag_id = $tag->tag_id;
         return $tag_id;
     }
     /**
@@ -227,6 +262,33 @@ class PostController extends Controller
         }
 
         return true;
+    }
+
+    //Search posts by tag
+    public function actionSearchTag($tag)
+    {
+        $tag_id = (new Query())->select('tag_id')
+                                ->from('tags')
+                                ->where(['tag_name' => $tag])
+                                ->one();
+
+        $post_ids = (new Query())->select('post_id')
+                                    ->from('tagpostrelation')
+                                    ->where(['tag_id' => $tag_id])
+                                    ->all();
+        $posts = [];
+
+        foreach ($post_ids as $post_id)
+        {
+            $posts[] = (new Query())->select('*')
+                                    ->from('posts')
+                                    ->where(['post_id' => $post_id])
+                                    ->one();
+
+
+        }
+
+        return json_encode($posts);
     }
 
     public function actionUpdateComment($id)

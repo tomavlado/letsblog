@@ -106,3 +106,34 @@
     margin-left: 5%;
     display: inline-block;
 }
+
+.list-view {
+    display: none;
+}
+
+.list-view a{
+    text-decoration: none;
+}
+
+.customize{
+    text-align: center;
+    font-size: 150%;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
+    background-color: #cccccc;
+    table-layout: fixed;
+}
+
+.customize tr:nth-child(even){
+    background-color: whitesmoke;
+}
+
+.customize tr{
+    border-bottom: 3px groove #2e6da4;
+}
+
+.customize td{
+    width: 33.3%;
+    overflow: hidden;
+    white-space: nowrap;
+}
+

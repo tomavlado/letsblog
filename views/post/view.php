@@ -24,6 +24,9 @@ use yii\widgets\DetailView;
                 <div class="text-center post-author-info">
                     <?= $author->email ?>
                 </div>
+                <div class="text-center post-author-info">
+                    <?= $tags ?>
+                </div>
             </div>
             <div class="col-md-8 col-md-offset-1">
                 <div class="full-post-content">

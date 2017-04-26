@@ -128,3 +128,35 @@ a.desc:after {
 .bg-custom-color{
     background-color: #333333;
 }
+
+.chat-box{
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-top: 1px solid blue;
+    border-left: 1px solid blue;
+    border-right: 1px solid blue;
+    width: 250px;
+    height: 40px;
+    background-color: lightgrey;
+    position: fixed;
+    bottom: 0;
+    right: 1%;
+    padding-top: 0.7%;
+    color: blue;
+    cursor: pointer;
+}
+
+.chat-content{
+    background-color: whitesmoke;;
+    overflow: auto;
+    width: 100%;
+}
+
+.chat-message{
+    background: white;
+    width: 70%;
+}
+
+.chat-button{
+    width: 30%;
+}

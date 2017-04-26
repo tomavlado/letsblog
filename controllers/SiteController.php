@@ -8,6 +8,7 @@ use app\models\UsersMessages;
 use function PHPSTORM_META\elementType;
 use Yii;
 use yii\base\ErrorException;
+use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\helpers\Html;
 use yii\web\Controller;
@@ -166,4 +167,31 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
+
+    public function actionAddMessage()
+    {
+        $message = \Yii::$app->request->get('message');
+        $username = \Yii::$app->user->identity->username;
+
+        \Yii::$app->db->createCommand("INSERT INTO chat(message_content, message_author) VALUES ('$message', '$username')")->execute();
+
+        $lastMessage = (new Query())->select('*')
+            ->from('chat')
+            ->orderBy(['message_id' => SORT_DESC])
+            ->one();
+
+        return json_encode($lastMessage);
+    }
+
+    public function actionLoadMessages()
+    {
+        $load = (new Query())->select('*')
+                                ->from('chat')
+                                ->orderBy(['message_id' => SORT_DESC])
+                                ->limit(10)
+                                ->all();
+
+        return json_encode($load);
+    }
+
 }

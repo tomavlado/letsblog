@@ -86,7 +86,7 @@ AppAsset::register($this);
            <div class="col-md-3">
                <p><strong><em>&copy; Let`s Blog<?= date('Y') ?></em></strong></p>
            </div>
-            <div class="col-md-6 col-md-offset-3 text-right">
+            <div class="col-md-6 col-md-offset-2">
                 <span><strong><em>Find us at</em></strong> &nbsp&nbsp&nbsp</span>
                 <?=
                 Html::a(
@@ -107,7 +107,13 @@ AppAsset::register($this);
         </div>
 
     </div>
+    <?php if(!(\Yii::$app->user->isGuest)): ?>
+    <div class="chat-box">
+        <p class="text-center"><strong>Chat here :)</strong></p>
+    </div>
+    <?php endif; ?>
 </footer>
+
 
 <?php $this->endBody() ?>
 </body>

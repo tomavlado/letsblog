@@ -173,7 +173,9 @@ class SiteController extends Controller
         $message = \Yii::$app->request->get('message');
         $username = \Yii::$app->user->identity->username;
 
-        \Yii::$app->db->createCommand("INSERT INTO chat(message_content, message_author) VALUES ('$message', '$username')")->execute();
+        \Yii::$app->db->createCommand("INSERT INTO chat(message_content, message_author) VALUES (:message, :username)")
+                                        ->bindValues([':message' => $message, ':username' => $username])
+                                        ->execute();
 
         $lastMessage = (new Query())->select('*')
             ->from('chat')

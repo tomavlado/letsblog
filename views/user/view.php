@@ -3,7 +3,7 @@
 use yii\helpers\Html;
 use yii\bootstrap\Modal;
 
-$this->title = "Welcome to your profile, " . ucfirst(\Yii::$app->user->identity->username) . "!";
+//$this->title = "Welcome to your profile, " . ucfirst(\Yii::$app->user->identity->username) . "!";
 
 ?>
 
@@ -16,7 +16,7 @@ $this->title = "Welcome to your profile, " . ucfirst(\Yii::$app->user->identity-
 
                 <div class="col-md-2 profile-picture">
 
-                    <?= Html::img("../images/" . $model->image, ['alt'=>'profile', 'class'=>'wide']); ?>
+                    <?= Html::img("../images/" . Html::encode($model->image), ['alt'=>'profile', 'class'=>'wide']); ?>
 
                 </div>
                     <?php

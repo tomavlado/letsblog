@@ -13,16 +13,16 @@ use yii\widgets\DetailView;
         <div class="row">
             <div class="col-md-3">
                 <div class="full-post-image">
-                    <?= Html::img('../images/' . $author->image, ['class' => 'img-thumbnail']) ?>
+                    <?= Html::img('../images/' . Html::encode($author->image), ['class' => 'img-thumbnail']) ?>
                 </div>
                 <div class="text-center post-author-info">
-                    <?= $author->username ?>
+                    <?= Html::encode($author->username) ?>
                 </div>
                 <div class="text-center post-author-info">
-                    <?= $model->date_create ?>
+                    <?= Html::encode($model->date_create) ?>
                 </div>
                 <div class="text-center post-author-info">
-                    <?= $author->email ?>
+                    <?= Html::encode($author->email) ?>
                 </div>
                 <div class="text-center post-author-info">
                     <?= $tags ?>
@@ -31,10 +31,10 @@ use yii\widgets\DetailView;
             <div class="col-md-8 col-md-offset-1">
                 <div class="full-post-content">
                     <div class="panel-heading panel-primary text-center style-title">
-                        <?= $model->title; ?>
+                        <?= Html::encode($model->title); ?>
                     </div>
                     <div id="full-post-content"">
-                        <?= $model->content; ?>
+                        <?= Html::encode($model->content); ?>
                     </div>
                     <div class="panel-footer panel-primary full-cont-footer">
                         <div class="row btns-row">
@@ -47,24 +47,24 @@ use yii\widgets\DetailView;
                                 <div class="col-md-8 text-left">
                                     <div class="btn-holder">
                                         <?php
-                                        if(\app\controllers\PostController::isAdmin() || \Yii::$app->user->identity->id == $model->user_id)
+                                        if(\app\controllers\PostController::isAdmin() || \Yii::$app->user->identity->id == Html::encode($model->user_id))
                                         {
-                                            echo Html::a('Edit', ['update', 'id' => $model->post_id],
+                                            echo Html::a('Edit', ['update', 'id' => Html::encode($model->post_id)],
                                                 ['class' => 'btn btn-primary']);
 
-                                            echo Html::a('Delete', ['delete', 'id' => $model->post_id],
+                                            echo Html::a('Delete', ['delete', 'id' => Html::encode($model->post_id)],
                                                 ['data-method' => 'POST', 'class' => 'btn btn-danger']);
                                         }
                                         else
                                         {
-                                            echo Html::a('Edit', ['update', 'id' => $model->post_id],
+                                            echo Html::a('Edit', ['update', 'id' => Html::encode($model->post_id)],
                                                 ['class' => 'btn btn-primary btn-restrict']);
 
-                                            echo Html::a('Delete', ['delete', 'id' => $model->post_id],
+                                            echo Html::a('Delete', ['delete', 'id' => Html::encode($model->post_id)],
                                                 ['class' => 'btn btn-danger btn-restrict']);
                                         }
 
-                                        echo Html::a('Comments [' . count($postCount) . ']', ['comments', 'id' => $model->post_id],
+                                        echo Html::a('Comments [' . count($postCount) . ']', ['comments', 'id' => Html::encode($model->post_id)],
                                             ['class' => 'btn btn-success']);
                                         ?>
                                     </div>

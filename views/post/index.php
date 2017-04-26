@@ -64,15 +64,15 @@ use yii\widgets\Pjax;
                         echo "<div class='col-md-6 blog-post'>
                                   <div class='col-md-3 post-prof-img'>"
                                         . Html::img('../images/' . $user->image, ['alt' => 'image', 'class' => 'tall img-circle']) .
-                                  "<p class='text-center title-par'><strong><em> $user->username </em></strong></p>
-                                   <p class='text-center'> $post->date_create</p>
+                                  "<p class='text-center title-par'><strong><em>" . Html::encode($user->username ) . "</em></strong></p>
+                                   <p class='text-center'>" . Html::encode($post->date_create) . "</p>
                                   </div>
                                   <div class='col-md-9 post-cont'><p>"
                                         . Html::a('Click for more!',['view', 'id' => $post->post_id]) .
-                                        "</p><label class='text-center'> $post->title : </label>
-                                        <div class='fade-post'>
-                                            $post->content
-                                        </div>
+                                        "</p><label class='text-center'>" . Html::encode($post->title) . " : </label>
+                                        <div class='fade-post'>"
+                                            . Html::encode($post->content) .
+                                        "</div>
                                   </div>
                               </div>";
                     }

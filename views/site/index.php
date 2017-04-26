@@ -116,7 +116,7 @@ $this->title = 'My Yii Application';
                                     <p><em>" . ucfirst($post['title']) . "</em></p>
                                     <p>" . $post['content'] . "</p>    
                                 </div>
-                              </div>", ['../post/view', 'id' => $post->post_id], ['style-decoration' => 'none']);
+                              </div>", ['../post/view', 'id' => Html::encode($post->post_id)], ['style-decoration' => 'none']);
                     }
 
                     ?>
